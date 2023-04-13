@@ -1,0 +1,337 @@
+#check health of cluster
+
+Syntax:
+	GET _API/parameter
+	
+Example:
+	GET _cluster/health
+	
+#Get info about nodes in a cluster
+
+	GET _nodes/stats
+	
+\**************************************************************/
+
+#CRUD operations
+
+	#Create an index
+		
+		Syntax:
+				PUT Name-of-the-Index
+		
+		Example:
+				PUT employee
+				
+	#Index a Document
+	#When indexing a document, both HTTP verbs POST or PUT can be used.
+	#Use POST when you want Elasticsearch to autogenerate an id for your document.
+	
+	Syntax:
+			POST Name-of-the-Index/_doc
+			{
+			  "field": "value"
+			}
+			
+	Example:
+			POST employee/_doc
+			{
+			  "first_name": "John",
+			  "last_name": "Legend"
+			}
+			
+	#Use PUT when you want to assign a specific id to your document
+	#(i.e. if your document has a natural identifier - purchase order number, patient id, & etc). 
+	
+	Syntax:
+			PUT Name-of-the-Index/_doc/id-you-want-to-assign-to-this-document
+			{
+				"field": "value"
+			}
+	
+	Example:
+			PUT employee/_doc/1
+			{
+			  "first_name": "Tom",
+			  "last_name": "Holland"
+			}
+			
+	#_create Endpoint
+	
+	Syntax:
+			PUT Name-of-the-Index/_create/id-you-want-to-assign-to-this-document
+			{
+			  "field": "value"
+			}
+			
+	Example:
+			PUT employee/_create/2
+			{
+			  "first_name": "Hugh",
+			  "last_name": "Jackman"
+			}
+<------------------------------------------------------------------->
+
+	##READ operations			
+	
+	Syntax:
+			GET Name-of-the-Index/_doc/id-of-the-document-you-want-to-retrieve		
+	
+	Example:
+			GET employee/_doc/1
+			
+	##Update a document
+	
+	syntax:
+			POST Name-of-the-Index/_update/id-of-the-document-you-want-to-update
+			{
+			  "doc": {
+				"field1": "value",
+				"field2": "value",
+			  }
+			} 
+			
+	Example:
+			POST employee/_update/2
+			{
+			  "doc": {
+				"first_name": "Robert"
+			  }
+			}
+			
+	##Delete a document
+	
+	Syntax:
+		DELETE Name-of-the-Index/_doc/id-of-the-document-you-want-to-delete
+		
+	Example:
+		DELETE favorite_candy/_doc/1
+		
+<==========================================================================================>
+
+
+#Retrieve information about documents in an index
+
+	Syntax:
+		GET enter_name_of_the_index_here/_search
+		
+	Example:
+		GET news_headlines/_search
+		
+#Get the exact total number of hits
+	
+	Syntax:
+		GET enter_name_of_the_index_here/_search
+		{
+		  "track_total_hits": true
+		}
+	Example:
+		GET news_headlines/_search
+		{
+		  "track_total_hits": true
+		}
+		
+#Search for data within a specific time range
+
+	Syntax:
+
+		GET enter_name_of_the_index_here/_search
+		{
+		  "query": {
+			"Specify the type of query here": {
+			  "Enter name of the field here": {
+				"gte": "Enter lowest value of the range here",
+				"lte": "Enter highest value of the range here"
+			  }
+			}
+		  }
+		}
+	Example:
+
+		GET news_headlines/_search
+		{
+		  "query": {
+			"range": {
+			  "date": {
+				"gte": "2015-06-20",
+				"lte": "2015-09-22"
+			  }
+			}
+		  }
+		}
+		
+		
+#Aggregations
+	#Analyze the data to show the categories of news headlines in our dataset
+	
+	Syntax:
+		GET enter_name_of_the_index_here/_search
+		{
+		  "aggs": {
+			"name your aggregation here": {
+			  "specify aggregation type here": {
+				"field": "name the field you want to aggregate here",
+				"size": state how many buckets you want returned here
+			  }
+			}
+		  }
+		}
+	Example:
+		GET news_headlines/_search
+		{
+		  "aggs": {
+			"by_category": {
+			  "terms": {
+				"field": "category",
+				"size": 100
+			  }
+			}
+		  }
+		}
+		
+	#A combination of query and aggregation request
+	#Search for the most significant term in a category
+	
+	Syntax:
+		GET enter_name_of_the_index_here/_search
+		{
+		  "query": {
+			"match": {
+			  "Enter the name of the field": "Enter the value you are looking for"
+			}
+		  },
+		  "aggregations": {
+			"Name your aggregation here": {
+			  "significant_text": {
+				"field": "Enter the name of the field you are searching for"
+			  }
+			}
+		  }
+		}
+		
+	Example:
+		GET news_headlines/_search
+		{
+		  "query": {
+			"match": {
+			  "category": "ENTERTAINMENT"
+			}
+		  },
+		  "aggregations": {
+			"popular_in_entertainment": {
+			  "significant_text": {
+				"field": "headline"
+			  }
+			}
+		  }
+		}
+		
+##Precision and Recall
+	#Increasing Recall
+	
+	Syntax:
+		GET enter_name_of_index_here/_search
+		{
+		  "query": {
+			"match": {
+			  "Specify the field you want to search": {
+				"query": "Enter search terms"
+			  }
+			}
+		  }
+		}
+		
+	Example:
+		GET news_headlines/_search
+		{
+		  "query": {
+			"match": {
+			  "headline": {
+				"query": "Khloe Kardashian Kendall Jenner"
+			  }
+			}
+		  }
+		}
+		
+	#We can increase precision by adding an "and" operator to the query.
+	
+	Syntax:
+		GET enter_name_of_index_here/_search
+		{
+		  "query": {
+			"match": {
+			  "Specify the field you want to search": {
+				"query": "Enter search terms",
+				"operator": "and"
+			  }
+			}
+		  }
+		}
+	
+	Example:
+		GET news_headlines/_search
+		{
+		  "query": {
+			"match": {
+			  "headline": {
+				"query": "Khloe Kardashian Kendall Jenner",
+				"operator": "and"
+			  }
+			}
+		  }
+		}
+
+	#minimum_should_match
+	
+	Syntax:
+		GET enter_name_of_index_here/_search
+		{
+		  "query": {
+			"match": {
+			  "headline": {
+				"query": "Enter search term here",
+				"minimum_should_match": Enter a number here
+			  }
+			}
+		  }
+		}
+	
+	Example:
+		GET news_headlines/_search
+		{
+		  "query": {
+			"match": {
+			  "headline": {
+				"query": "Khloe Kardashian Kendall Jenner",
+				"minimum_should_match": 3
+			  }
+			}
+		  }
+		}
+		
+	#Searching for search terms
+	
+	Syntax:
+		GET Enter_name_of_index_here/_search
+		{
+		  "query": {
+			"match": {
+			  "Specify the field you want to search": {
+				"query": "Enter search terms"
+			  }
+			}
+		  }
+		}
+		
+	#Searching for a phrase
+	
+	Example:
+	GET news_headlines/_search
+		{
+		  "query": {
+			"match": {
+			  "headline": {
+				"query": "Shape of you"
+			  }
+			}
+		  }
+		}
